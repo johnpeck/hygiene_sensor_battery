@@ -62,22 +62,26 @@ set system_battery_capacity_c [expr $regulator_efficiency * $battery_energy / $r
 
 utils::add_section_header "Battery and regulator"
 
-puts "Each cell contributes [format {%0.0f} [expr $battery_energy / $cell_number]] joules,\
-sourcing [format {%0.0f} $rated_battery_capacity_c] coulombs\
-([format {%0.0f} $rated_battery_capacity_mah] mAh)."
+set data "Each cell contributes [format {%0.0f} [expr $battery_energy / $cell_number]] joules, "
+append data "sourcing [format {%0.0f} $rated_battery_capacity_c] coulombs "
+append data "([format {%0.0f} $rated_battery_capacity_mah] mAh)."
+puts $data
 
 puts "Total battery energy is [format {%0.0f} $battery_energy] joules from $cell_number cells."
 
-puts "Batteries drain from [format {%0.1f} $fresh_voltage] volts to\
-[format {%0.1f} $dead_voltage] volts with a shape factor of\
-[format {%0.1f} $discharge_curve_factor]."
+set data "Batteries drain from [format {%0.1f} $fresh_voltage] volts to "
+append data "[format {%0.1f} $dead_voltage] volts with a shape factor of "
+append data "[format {%0.1f} $discharge_curve_factor]."
+puts $data
 
-puts "Average battery voltage for $cell_number cells in series is\
-[format {%0.2f} $average_battery_voltage] volts."
+set data "Average battery voltage for $cell_number cells in series is "
+append data "[format {%0.2f} $average_battery_voltage] volts."
+puts $data
 
-puts "System battery capacity at $regulator_voltage volts is\
-     [format {%0.0f} $system_battery_capacity_c] coulombs\
-     ([format {%0.0f} [expr $system_battery_capacity_c / 3.6]] mAh)"
+
+set data "System battery capacity at $regulator_voltage volts is "
+append data "[format {%0.0f} $system_battery_capacity_c] coulombs "
+append data "([format {%0.0f} [expr $system_battery_capacity_c / 3.6]] mAh)."
 
 # ---------------------------- LEDs -----------------------------------
 
@@ -98,9 +102,10 @@ set average_led_current [expr ($average_battery_voltage - $led_voltage) / $led_r
 
 utils::add_section_header "LEDs"
 
-puts "Average LED current is [format {%0.1f} [expr $average_led_current * 1000]] mA\
-for [format {%0.1f} $led_dispense_time] seconds,\
-[format {%0.0f} $dispenses_per_day] times a day."
+set data "Average LED current is [format {%0.1f} [expr $average_led_current * 1000]] mA "
+append data "for [format {%0.1f} $led_dispense_time] seconds, "
+append data "[format {%0.0f} $dispenses_per_day] times a day."
+puts $data
 
 # Energy spent by LEDs each day (joules)
 #
@@ -117,8 +122,9 @@ set capsensor_current 0.0003
 utils::add_section_header "Capacitive sensor"
 set daily_capsensor_energy [expr 86400 * $capsensor_current * $regulator_voltage / $regulator_efficiency]
 
-puts "Daily capactive sensor energy is [format {%0.0f} $daily_capsensor_energy] joules,\
-drawing [format {%0.0f} [expr $capsensor_current * 1e6]] uA continuously."
+set data "Daily capactive sensor energy is [format {%0.0f} $daily_capsensor_energy] joules, "
+append data "drawing [format {%0.0f} [expr $capsensor_current * 1e6]] uA continuously."
+puts $data
 
 # ----------------------------- Radio --------------------------------- 
 
@@ -141,12 +147,14 @@ set daily_radio_static_energy [expr 86400 * $radio_static_current * $regulator_v
 
 utils::add_section_header "Radio"
 
-puts "Daily radio static energy is [format {%0.0f} $daily_radio_static_energy] joules,\
-drawing [format {%0.0f} [expr $radio_static_current * 1e6]] uA continuously."
+set data "Daily radio static energy is [format {%0.0f} $daily_radio_static_energy] joules, "
+append data "drawing [format {%0.0f} [expr $radio_static_current * 1e6]] uA continuously."
+puts $data
 
-puts "Daily radio dynamic energy is [format {%0.0f} $daily_radio_dispense_energy] joules,\
-drawing [format {%0.0f} [expr $radio_dispense_current * 1e3]] mA\
-$dispenses_per_day times a day."
+set data "Daily radio dynamic energy is [format {%0.0f} $daily_radio_dispense_energy] joules, "
+append data "drawing [format {%0.0f} [expr $radio_dispense_current * 1e3]] mA "
+append data "$dispenses_per_day times a day."
+puts $data
 
 # --------------------------- Total -----------------------------------
 
@@ -165,6 +173,7 @@ puts "Radio active share is [format {%0.0f} [expr $daily_radio_dispense_energy /
 
 
 set days_to_die [expr $battery_energy / $total_daily_energy]
-puts "Life expectancy is [format {%0.0f} $days_to_die] days\
-     ([format {%0.2f} [expr ($days_to_die / 365)]] years)"
+set data  "Life expectancy is [format {%0.0f} $days_to_die] days "
+append data "([format {%0.2f} [expr ($days_to_die / 365)]] years)."
+puts $data
 puts ""
