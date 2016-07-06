@@ -120,7 +120,10 @@ set daily_led_energy [expr $dispenses_per_day * \
 			  $average_battery_voltage]
 
 # ------------------------ Capacitive sensor --------------------------
-# Average capacitive sensor current (A)
+
+# Average capacitive sensor current (A).  The capsensor runs at 2V,
+# with a 16MHz clock, sleeping for 16ms between measurements.  This
+# means a sample period of 16ms + 40ms = 56ms.
 set capsensor_current 0.0003
 
 utils::add_section_header "Capacitive sensor"
@@ -201,5 +204,5 @@ append data "([format {%0.2f} [expr ($days_to_die / 365)]] years)."
 puts $data
 puts ""
 
-# ------------------------ Measureables -------------------------------
+
 
