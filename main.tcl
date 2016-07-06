@@ -60,6 +60,7 @@ set regulator_voltage 2
 # flowing out of the regulator voltage (coulombs)
 set system_battery_capacity_c [expr $regulator_efficiency * $battery_energy / $regulator_voltage]
 
+
 utils::add_section_header "Battery and regulator"
 
 set data "Each cell contributes [format {%0.0f} [expr $battery_energy / $cell_number]] joules, "
@@ -100,6 +101,9 @@ set led_resistor 200
 # Average green LED current over the life of the dispenser
 set average_led_current [expr ($average_battery_voltage - $led_voltage) / $led_resistor]
 
+# Peak LED current measured during checkout
+set peak_led_current [expr ($fresh_voltage * $cell_number - $led_voltage) / $led_resistor]
+
 utils::add_section_header "LEDs"
 
 set data "Average LED current is [format {%0.1f} [expr $average_led_current * 1000]] mA "
@@ -129,7 +133,7 @@ puts $data
 # ----------------------------- Radio --------------------------------- 
 
 # Radio current expended constantly (A)
-set radio_static_current 0.000050
+set radio_static_current 0.000150
 
 # Radio current expended during a dispense (A)
 set radio_dispense_current 0.005
@@ -163,6 +167,17 @@ set total_daily_energy [expr $daily_led_energy + \
 			    $daily_radio_dispense_energy +\
 			    $daily_radio_static_energy]
 
+# Calculate the static current that should be measured from a voltage
+# source equal to the fresh battery voltage.
+set total_static_battery_current [expr ($daily_radio_static_energy + $daily_capsensor_energy) /\
+				      ($fresh_voltage * $cell_number * 86400)]
+
+# The total current that should be measured from a voltage source
+# equal to the fresh battery voltage during a dispense event.
+set total_dispense_battery_current [expr $peak_led_current + \
+					$radio_dispense_current * $regulator_voltage /\
+				       ($fresh_voltage * $cell_number * $regulator_efficiency)]
+
 utils::add_section_header "Total"
 
 puts "Total daily energy expenditure is [format {%0.0f} $total_daily_energy] joules"
@@ -171,9 +186,20 @@ puts "Capacitive sensor share is [format {%0.0f} [expr $daily_capsensor_energy /
 puts "Radio static share is [format {%0.0f} [expr $daily_radio_static_energy / $total_daily_energy * 100]]%"
 puts "Radio active share is [format {%0.0f} [expr $daily_radio_dispense_energy / $total_daily_energy * 100]]%"
 
+set data "Static current draw from a [format {%0.2f} [expr $fresh_voltage * $cell_number]] volt source is "
+append data "[format {%0.2f} [expr $total_static_battery_current * 1e6]] uA."
+puts $data
+
+set data "Current draw from a [format {%0.2f} [expr $fresh_voltage * $cell_number]] volt source "
+append data "during a dispense event is [format {%0.2f} [expr $total_dispense_battery_current * 1e3]] mA."
+puts $data
+
 
 set days_to_die [expr $battery_energy / $total_daily_energy]
 set data  "Life expectancy is [format {%0.0f} $days_to_die] days "
 append data "([format {%0.2f} [expr ($days_to_die / 365)]] years)."
 puts $data
 puts ""
+
+# ------------------------ Measureables -------------------------------
+
