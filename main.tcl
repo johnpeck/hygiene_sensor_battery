@@ -53,8 +53,8 @@ set average_battery_voltage [expr $battery_energy / $rated_battery_capacity_c]
 # energy multiplied by an efficiency factor between 0 and 1.
 set regulator_efficiency 0.9
 
-# Voltage at the regulator output
-set regulator_voltage 3.3
+# Voltage at the regulator output (volts, either 2 or 3.3)
+set regulator_voltage 2
 
 # The system battery capacity is the charge available to the system
 # flowing out of the regulator voltage (coulombs)
