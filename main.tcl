@@ -141,7 +141,7 @@ puts $data
 # ----------------------------- Radio --------------------------------- 
 
 # Radio current expended constantly (A)
-set radio_static_current 0.0001
+set radio_static_current 0.0002
 
 # Radio current expended during a dispense (A)
 set radio_dispense_current 0.005
