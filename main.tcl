@@ -129,7 +129,7 @@ set daily_led_energy [expr $dispenses_per_day * \
 # Running a 3.3V enables a 32MHz clock.  This reduces the measurement
 # time from 40ms to 20ms.  Keeping the same sample period, we could
 # use a longer sleep time of 32ms.
-set capsensor_current 0.00035
+set capsensor_current 0.0003
 
 utils::add_section_header "Capacitive sensor"
 set daily_capsensor_energy [expr 86400 * $capsensor_current * $regulator_voltage / $regulator_efficiency]
