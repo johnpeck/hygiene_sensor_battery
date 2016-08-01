@@ -63,24 +63,24 @@ set system_battery_capacity_c [expr $regulator_efficiency * $battery_energy / $r
 
 utils::add_section_header "Battery and regulator"
 
-set data "Each cell contributes [format {%0.0f} [expr $battery_energy / $cell_number]] joules, "
+set data "* Each cell contributes [format {%0.0f} [expr $battery_energy / $cell_number]] joules, "
 append data "sourcing [format {%0.0f} $rated_battery_capacity_c] coulombs "
 append data "([format {%0.0f} $rated_battery_capacity_mah] mAh)."
 puts $data
 
-puts "Total battery energy is [format {%0.0f} $battery_energy] joules from $cell_number cells."
+puts "* Total battery energy is [format {%0.0f} $battery_energy] joules from $cell_number cells."
 
-set data "Batteries drain from [format {%0.1f} $fresh_voltage] volts to "
+set data "* Batteries drain from [format {%0.1f} $fresh_voltage] volts to "
 append data "[format {%0.1f} $dead_voltage] volts with a shape factor of "
 append data "[format {%0.1f} $discharge_curve_factor]."
 puts $data
 
-set data "Average battery voltage for $cell_number cells in series is "
+set data "* Average battery voltage for $cell_number cells in series is "
 append data "[format {%0.2f} $average_battery_voltage] volts."
 puts $data
 
 
-set data "System battery capacity at $regulator_voltage volts is "
+set data "* System battery capacity at $regulator_voltage volts is "
 append data "[format {%0.0f} $system_battery_capacity_c] coulombs "
 append data "([format {%0.0f} [expr $system_battery_capacity_c / 3.6]] mAh)."
 puts $data
@@ -107,7 +107,7 @@ set peak_led_current [expr ($fresh_voltage * $cell_number - $led_voltage) / $led
 
 utils::add_section_header "LEDs"
 
-set data "Average LED current is [format {%0.1f} [expr $average_led_current * 1000]] mA "
+set data "* Average LED current is [format {%0.1f} [expr $average_led_current * 1000]] mA "
 append data "for [format {%0.1f} $led_dispense_time] seconds, "
 append data "[format {%0.0f} $dispenses_per_day] times a day."
 puts $data
@@ -129,12 +129,19 @@ set daily_led_energy [expr $dispenses_per_day * \
 # Running a 3.3V enables a 32MHz clock.  This reduces the measurement
 # time from 40ms to 20ms.  Keeping the same sample period, we could
 # use a longer sleep time of 32ms.
-set capsensor_current 0.0003
+#
+# There's an issue with battery current rising from something like
+# 170uA to 300uA or 500uA.  The idea is that this increase is
+# completely caused by the MTCH112, which means that this part would
+# have to draw about 600 more uA. It might be that the part is
+# deciding it needs to make a longer measurement to meet its noise
+# requirements.
+set capsensor_current 0.001
 
 utils::add_section_header "Capacitive sensor"
 set daily_capsensor_energy [expr 86400 * $capsensor_current * $regulator_voltage / $regulator_efficiency]
 
-set data "Daily capactive sensor energy is [format {%0.0f} $daily_capsensor_energy] joules, "
+set data "* Daily capactive sensor energy is [format {%0.0f} $daily_capsensor_energy] joules, "
 append data "drawing [format {%0.0f} [expr $capsensor_current * 1e6]] uA continuously."
 puts $data
 
@@ -143,15 +150,16 @@ puts $data
 # Radio current during connection effort (A)
 #
 # The radio is in a high-current state when the hygiene sensor
-# initially tries to connect to the mesh.
-set radio_connect_current 0.001
+# initially tries to connect to the mesh.  This is not just the radio
+# -- the radio and the processor ramp up during connects.
+set radio_connect_current 0.02
 
 # Time spent in initial connection effort (seconds)
 #
 # The Hygiene Sensor will draw high current for a short time when it
 # initially tries to connect.  After this time, it will go into a
 # "backoff" state, in which it tries to connect much less often.
-set radio_connect_time 20
+set radio_connect_time 3.5
 
 # Number of spontaneous mesh disconnects each day
 set radio_connects_per_day 500
@@ -191,8 +199,8 @@ puts $data
 
 set data "* Daily radio connection energy is [format {%0.0f} $daily_radio_connect_energy] joules. "
 append data "The radio connects and\n  disconnects $radio_connects_per_day times each day, drawing "
-append data "[format {%0.0f} [expr $radio_connect_current * 1e6]] uA before the "
-append data "${radio_connect_time}\n  second backoff expires."
+append data "[format {%0.1f} [expr $radio_connect_current * 1e3]] mA before the "
+append data "[format {%0.1f} $radio_connect_time]\n  startup period expires."
 puts $data
 
 # --------------------------- Total -----------------------------------
@@ -216,27 +224,27 @@ set total_dispense_battery_current [expr $peak_led_current + \
 
 utils::add_section_header "Total"
 
-puts "Total daily energy expenditure is [format {%0.0f} $total_daily_energy] joules"
-puts "LED share is [format {%0.0f} [expr $daily_led_energy / $total_daily_energy * 100]]%"
-puts "Capacitive sensor share is [format {%0.0f} [expr $daily_capsensor_energy / $total_daily_energy * 100]]%"
-puts "Radio static share is [format {%0.0f} [expr $daily_radio_static_energy / $total_daily_energy * 100]]%"
-set outstr "Radio connect/disconnect share is "
+puts "* Total daily energy expenditure is [format {%0.0f} $total_daily_energy] joules"
+puts "* LED share is [format {%0.0f} [expr $daily_led_energy / $total_daily_energy * 100]]%"
+puts "* Capacitive sensor share is [format {%0.0f} [expr $daily_capsensor_energy / $total_daily_energy * 100]]%"
+puts "* Radio static share is [format {%0.0f} [expr $daily_radio_static_energy / $total_daily_energy * 100]]%"
+set outstr "* Radio connect/disconnect share is "
 append outstr "[format {%0.0f} [expr $daily_radio_connect_energy / $total_daily_energy * 100]]%"
 puts $outstr
-puts "Radio active share is [format {%0.0f} [expr $daily_radio_dispense_energy / $total_daily_energy * 100]]%"
+puts "* Radio active share is [format {%0.0f} [expr $daily_radio_dispense_energy / $total_daily_energy * 100]]%"
 
 set days_to_die [expr $battery_energy / $total_daily_energy]
-set data  "Life expectancy is [format {%0.0f} $days_to_die] days "
+set data  "* Life expectancy is [format {%0.0f} $days_to_die] days "
 append data "([format {%0.2f} [expr ($days_to_die / 365)]] years)."
 puts $data
 
 
 utils::add_section_header "Verification"
-set data "Static current draw from a [format {%0.2f} [expr $fresh_voltage * $cell_number]] volt source is "
+set data "* Static current draw from a [format {%0.2f} [expr $fresh_voltage * $cell_number]] volt source is "
 append data "[format {%0.2f} [expr $total_static_battery_current * 1e6]] uA."
 puts $data
 
-set data "Current draw from a [format {%0.2f} [expr $fresh_voltage * $cell_number]] volt source "
+set data "* Current draw from a [format {%0.2f} [expr $fresh_voltage * $cell_number]] volt source "
 append data "during a dispense event is [format {%0.2f} [expr $total_dispense_battery_current * 1e3]] mA."
 puts $data
 puts ""
