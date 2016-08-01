@@ -140,6 +140,22 @@ puts $data
 
 # ----------------------------- Radio --------------------------------- 
 
+# Radio current during connection effort (A)
+#
+# The radio is in a high-current state when the hygiene sensor
+# initially tries to connect to the mesh.
+set radio_connect_current 0.001
+
+# Time spent in initial connection effort (seconds)
+#
+# The Hygiene Sensor will draw high current for a short time when it
+# initially tries to connect.  After this time, it will go into a
+# "backoff" state, in which it tries to connect much less often.
+set radio_connect_time 20
+
+# Number of spontaneous mesh disconnects each day
+set radio_connects_per_day 500
+
 # Radio current expended constantly (A)
 set radio_static_current 0.0002
 
@@ -147,7 +163,12 @@ set radio_static_current 0.0002
 set radio_dispense_current 0.005
 
 # Time spent in the high energy state of a dispense (seconds)
-set radio_dispense_time 0.7 
+set radio_dispense_time 0.7
+
+# Energy expended by the radio during connections
+set daily_radio_connect_energy [expr $radio_connects_per_day * $radio_connect_time *\
+				    $radio_connect_current * $regulator_voltage /\
+				   $regulator_efficiency]
 
 # Energy expended by the radio during dispenses
 set daily_radio_dispense_energy [expr $dispenses_per_day * $radio_dispense_time *\
@@ -159,13 +180,19 @@ set daily_radio_static_energy [expr 86400 * $radio_static_current * $regulator_v
 
 utils::add_section_header "Radio"
 
-set data "Daily radio static energy is [format {%0.0f} $daily_radio_static_energy] joules, "
+set data "* Daily radio static energy is [format {%0.0f} $daily_radio_static_energy] joules, "
 append data "drawing [format {%0.0f} [expr $radio_static_current * 1e6]] uA continuously."
 puts $data
 
-set data "Daily radio dynamic energy is [format {%0.0f} $daily_radio_dispense_energy] joules, "
+set data "* Daily radio dynamic energy is [format {%0.0f} $daily_radio_dispense_energy] joules, "
 append data "drawing [format {%0.0f} [expr $radio_dispense_current * 1e3]] mA "
 append data "$dispenses_per_day times a day."
+puts $data
+
+set data "* Daily radio connection energy is [format {%0.0f} $daily_radio_connect_energy] joules. "
+append data "The radio connects and\n  disconnects $radio_connects_per_day times each day, drawing "
+append data "[format {%0.0f} [expr $radio_connect_current * 1e6]] uA before the "
+append data "${radio_connect_time}\n  second backoff expires."
 puts $data
 
 # --------------------------- Total -----------------------------------
@@ -173,7 +200,8 @@ puts $data
 set total_daily_energy [expr $daily_led_energy + \
 			    $daily_capsensor_energy +\
 			    $daily_radio_dispense_energy +\
-			    $daily_radio_static_energy]
+			    $daily_radio_static_energy +\
+			    $daily_radio_connect_energy]
 
 # Calculate the static current that should be measured from a voltage
 # source equal to the fresh battery voltage.
@@ -192,6 +220,9 @@ puts "Total daily energy expenditure is [format {%0.0f} $total_daily_energy] jou
 puts "LED share is [format {%0.0f} [expr $daily_led_energy / $total_daily_energy * 100]]%"
 puts "Capacitive sensor share is [format {%0.0f} [expr $daily_capsensor_energy / $total_daily_energy * 100]]%"
 puts "Radio static share is [format {%0.0f} [expr $daily_radio_static_energy / $total_daily_energy * 100]]%"
+set outstr "Radio connect/disconnect share is "
+append outstr "[format {%0.0f} [expr $daily_radio_connect_energy / $total_daily_energy * 100]]%"
+puts $outstr
 puts "Radio active share is [format {%0.0f} [expr $daily_radio_dispense_energy / $total_daily_energy * 100]]%"
 
 set days_to_die [expr $battery_energy / $total_daily_energy]
