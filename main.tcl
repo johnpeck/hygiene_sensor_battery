@@ -136,7 +136,7 @@ set daily_led_energy [expr $dispenses_per_day * \
 # have to draw about 600 more uA. It might be that the part is
 # deciding it needs to make a longer measurement to meet its noise
 # requirements.
-set capsensor_current 0.001
+set capsensor_current 0.0003
 
 utils::add_section_header "Capacitive sensor"
 set daily_capsensor_energy [expr 86400 * $capsensor_current * $regulator_voltage / $regulator_efficiency]
@@ -162,9 +162,13 @@ set radio_connect_current 0.02
 set radio_connect_time 3.5
 
 # Number of spontaneous mesh disconnects each day
-set radio_connects_per_day 500
+set radio_connects_per_day 10
 
 # Radio current expended constantly (A)
+#
+# Frank observes 50-70uA upstream from the regulator (at the battery
+# input).  Since the battery voltage / regulator voltage ratio is 3,
+# this means 150 to 210uA downstream from the regulator.
 set radio_static_current 0.0002
 
 # Radio current expended during a dispense (A)
