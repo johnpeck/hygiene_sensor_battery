@@ -165,18 +165,21 @@ set radio_connect_time 3.5
 # Number of spontaneous mesh disconnects each day
 set radio_connects_per_day 10
 
-# Radio current expended constantly (A)
+# Radio current expended constantly (uA)
 #
 # Frank observes 50-70uA upstream from the regulator (at the battery
-# input).  Since the battery voltage / regulator voltage ratio is 3,
-# this means 150 to 210uA downstream from the regulator.
-set radio_static_current 0.0002
+# input) with no capacitive sensor.  Since the battery voltage /
+# regulator voltage ratio is 3, this means 150 to 210uA downstream
+# from the regulator.
+set radio_static_current_ua 180
 
 # Radio current expended during a dispense (A)
 set radio_dispense_current 0.005
 
 # Time spent in the high energy state of a dispense (seconds)
 set radio_dispense_time 0.7
+
+set radio_static_current [expr $radio_static_current_ua * 1e-6]
 
 # Energy expended by the radio during connections
 set daily_radio_connect_energy [expr $radio_connects_per_day * $radio_connect_time *\
