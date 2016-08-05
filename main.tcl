@@ -122,7 +122,7 @@ set daily_led_energy [expr $dispenses_per_day * \
 
 # ------------------------ Capacitive sensor --------------------------
 
-# Average capacitive sensor current (A).  The capsensor runs at 2V,
+# Average capacitive sensor current (uA).  The capsensor runs at 2V,
 # with a 16MHz clock, sleeping for 16ms between measurements.  This
 # means a sample period of 16ms + 40ms = 56ms.
 #
@@ -136,9 +136,10 @@ set daily_led_energy [expr $dispenses_per_day * \
 # have to draw about 600 more uA. It might be that the part is
 # deciding it needs to make a longer measurement to meet its noise
 # requirements.
-set capsensor_current 0.0003
+set capsensor_current_ua 340
 
 utils::add_section_header "Capacitive sensor"
+set capsensor_current [expr $capsensor_current_ua * 1e-6]
 set daily_capsensor_energy [expr 86400 * $capsensor_current * $regulator_voltage / $regulator_efficiency]
 
 set data "* Daily capactive sensor energy is [format {%0.0f} $daily_capsensor_energy] joules, "
