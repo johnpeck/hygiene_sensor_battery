@@ -122,7 +122,7 @@ set daily_led_energy [expr $dispenses_per_day * \
 
 # ------------------------ Capacitive sensor --------------------------
 
-# Average capacitive sensor current (uA).  The capsensor runs at 2V,
+# Average capacitive sensor current (A).  The capsensor runs at 2V,
 # with a 16MHz clock, sleeping for 16ms between measurements.  This
 # means a sample period of 16ms + 40ms = 56ms.
 #
@@ -136,10 +136,9 @@ set daily_led_energy [expr $dispenses_per_day * \
 # have to draw about 600 more uA. It might be that the part is
 # deciding it needs to make a longer measurement to meet its noise
 # requirements.
-set capsensor_current_ua 340
+set capsensor_current 0.0003
 
 utils::add_section_header "Capacitive sensor"
-set capsensor_current [expr $capsensor_current_ua * 1e-6]
 set daily_capsensor_energy [expr 86400 * $capsensor_current * $regulator_voltage / $regulator_efficiency]
 
 set data "* Daily capactive sensor energy is [format {%0.0f} $daily_capsensor_energy] joules, "
@@ -165,21 +164,29 @@ set radio_connect_time 3.5
 # Number of spontaneous mesh disconnects each day
 set radio_connects_per_day 10
 
-# Radio current expended constantly (uA)
+# Radio current expended constantly while connected to mesh (A)
 #
 # Frank observes 50-70uA upstream from the regulator (at the battery
-# input) with no capacitive sensor.  Since the battery voltage /
-# regulator voltage ratio is 3, this means 150 to 210uA downstream
-# from the regulator.
-set radio_static_current_ua 180
+# input).  Since the battery voltage / regulator voltage ratio is 3,
+# this means 150 to 210uA downstream from the regulator.
+set radio_connected_static_current_ua 200
+
+# Radio current expended constantly while disconnected from the mesh (uA)
+#
+# The radio goes through a vigorous reconnect effort when first
+# disconnected, then settles in to a constant current state.
+set radio_disconnected_static_current_ua 425
+
+# Radio disconnect fraction
+#
+# Fraction of each day spend disconnected (0 --> 1)
+set radio_disconnected_fraction 1
 
 # Radio current expended during a dispense (A)
 set radio_dispense_current 0.005
 
 # Time spent in the high energy state of a dispense (seconds)
 set radio_dispense_time 0.7
-
-set radio_static_current [expr $radio_static_current_ua * 1e-6]
 
 # Energy expended by the radio during connections
 set daily_radio_connect_energy [expr $radio_connects_per_day * $radio_connect_time *\
@@ -191,13 +198,23 @@ set daily_radio_dispense_energy [expr $dispenses_per_day * $radio_dispense_time 
 				     $radio_dispense_current * $regulator_voltage /\
 				     $regulator_efficiency]
 
-set daily_radio_static_energy [expr 86400 * $radio_static_current * $regulator_voltage /\
-				   $regulator_efficiency]
+# Energy expended by the radio in steady state
+set radio_connected_static_current [expr $radio_connected_static_current_ua / 1e6]
+set radio_disconnected_static_current [expr $radio_disconnected_static_current_ua / 1e6]
+set radio_connected_fraction [expr 1 - $radio_disconnected_fraction]
+set daily_radio_static_energy [expr 86400 * ($radio_connected_fraction * \
+						 $radio_connected_static_current * \
+						 $regulator_voltage / \
+						 $regulator_efficiency + \
+						 $radio_disconnected_fraction * \
+						 $radio_disconnected_static_current * \
+						 $regulator_voltage / \
+						 $regulator_efficiency)]
 
 utils::add_section_header "Radio"
 
 set data "* Daily radio static energy is [format {%0.0f} $daily_radio_static_energy] joules, "
-append data "drawing [format {%0.0f} [expr $radio_static_current * 1e6]] uA continuously."
+append data "drawing [format {%0.0f} [expr $radio_connected_static_current * 1e6]] uA continuously."
 puts $data
 
 set data "* Daily radio dynamic energy is [format {%0.0f} $daily_radio_dispense_energy] joules, "
