@@ -180,7 +180,7 @@ set radio_disconnected_static_current_ua 425
 # Radio disconnect fraction
 #
 # Fraction of each day spend disconnected (0 --> 1)
-set radio_disconnected_fraction 1
+set radio_disconnected_fraction 0
 
 # Radio current expended during a dispense (A)
 set radio_dispense_current 0.005
