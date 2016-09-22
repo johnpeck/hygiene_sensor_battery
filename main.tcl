@@ -136,11 +136,13 @@ set daily_led_energy [expr $dispenses_per_day * \
 # have to draw about 600 more uA. It might be that the part is
 # deciding it needs to make a longer measurement to meet its noise
 # requirements.
-set capsensor_current 0.0003
+set capsensor_current_ua 300
 
-utils::add_section_header "Capacitive sensor"
+# Calculations
+set capsensor_current [expr $capsensor_current_ua / 1e6]
 set daily_capsensor_energy [expr 86400 * $capsensor_current * $regulator_voltage / $regulator_efficiency]
 
+utils::add_section_header "Capacitive sensor"
 set data "* Daily capactive sensor energy is [format {%0.0f} $daily_capsensor_energy] joules, "
 append data "drawing [format {%0.0f} [expr $capsensor_current * 1e6]] uA continuously."
 puts $data
@@ -187,6 +189,8 @@ set radio_dispense_current 0.005
 
 # Time spent in the high energy state of a dispense (seconds)
 set radio_dispense_time 0.7
+
+# Calculations
 
 # Energy expended by the radio during connections
 set daily_radio_connect_energy [expr $radio_connects_per_day * $radio_connect_time *\
