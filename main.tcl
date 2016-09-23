@@ -54,7 +54,7 @@ set average_battery_voltage [expr $battery_energy / $rated_battery_capacity_c]
 set regulator_efficiency 0.9
 
 # Voltage at the regulator output (volts, either 2 or 3.3)
-set regulator_voltage 2
+set regulator_voltage 2.7
 
 # The system battery capacity is the charge available to the system
 # flowing out of the regulator voltage (coulombs)
@@ -136,7 +136,7 @@ set daily_led_energy [expr $dispenses_per_day * \
 # have to draw about 600 more uA. It might be that the part is
 # deciding it needs to make a longer measurement to meet its noise
 # requirements.
-set capsensor_current_ua 300
+set capsensor_current_ua 70
 
 # Calculations
 set capsensor_current [expr $capsensor_current_ua / 1e6]
